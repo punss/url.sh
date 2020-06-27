@@ -15,29 +15,27 @@ url_db = db.urls
 @app.route('/', methods=['POST'])
 def new_path():
     print("That was a {} request".format(request.method))
-    print(request.get_json())
     json_data = request.get_json()
-    # url_db.insert(json_data)
-    if json_data["customurl"] == "":
+    if url_db.find_one({"customurl": json_data['customurl']}):
+        return {"message": "that url is already taken"}
+    elif json_data["customurl"] == "":
         customurl = "".join(random.choices(string.ascii_lowercase, k=5))
         print(customurl)
         url_db.insert({
             "url": json_data["url"],
             "customurl": customurl,
         })
-        # print("Insert")
         return {
-        "message": "http://localhost:3000/{}".format(customurl)
-        }
+            "message": "http://localhost:3000/{}".format(customurl)
+            }
     else:
         customurl = json_data["customurl"]
         url_db.insert({
             "url": json_data["url"],
             "customurl": customurl,
         })
-        # print("Insert")
         return {
-            "message": "Your shortened URL is: http://localhost:3000/{}".format(
+            "message": "http://localhost:3000/{}".format(
                 customurl
                 )
         }
@@ -48,7 +46,6 @@ def redirect(shorturl):
     redirect_url = url_db.find_one({"customurl": escape(shorturl)})
     print(escape(shorturl))
     if redirect_url:
-        print({"redirect": "true", "url": redirect_url["url"]})
         return {"redirect": "true", "url": redirect_url["url"]}
     else:
         return {"redirect": "false"}
